@@ -19,24 +19,58 @@ const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>('loading');
 
   useEffect(() => {
-    const isAuthenticated = localStorage.getItem('easup_authenticated') === 'true';
-    const hasOnboarded = localStorage.getItem('easup_onboarding_complete') === 'true';
+  const initApp = async () => {
+    const isAuthenticated =
+      localStorage.getItem('easup_authenticated') === 'true';
+    const userId = localStorage.getItem('easup_user_id');
 
-    if (isAuthenticated) {
-      if (hasOnboarded) {
-        setAppState('ready');
+    if (!isAuthenticated || !userId) {
+      setAppState('auth');
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `http://localhost/appEASUP/API/check_profile.php?userId=${userId}`
+      );
+      const data = await res.json();
+
+      if (data.exists) {
+        setAppState('ready');        // ✅ profil déjà créé
       } else {
-        setAppState('onboarding');
+        setAppState('onboarding');   // ❌ pas encore de profil
       }
-    } else {
+    } catch (e) {
+      console.error(e);
       setAppState('auth');
     }
-  }, []);
-
-  const handleLoginSuccess = () => {
-    localStorage.setItem('easup_authenticated', 'true');
-    setAppState('onboarding');
   };
+
+  initApp();
+}, []);
+
+
+ const handleLoginSuccess = async (userId: number) => {
+  localStorage.setItem('easup_authenticated', 'true');
+  localStorage.setItem('easup_user_id', userId.toString());
+
+  try {
+    const res = await fetch(
+      `http://localhost/appEASUP/API/check_profile.php?userId=${userId}`
+    );
+    const data = await res.json();
+
+    if (data.hasProfile) {
+      setAppState('ready');       // ✅ PAS d’onboarding
+    } else {
+      setAppState('onboarding');  // ✅ onboarding UNE FOIS
+    }
+  } catch (e) {
+    console.error(e);
+    setAppState('auth');
+  }
+};
+
 
   const handleOnboardingComplete = () => {
     localStorage.setItem('easup_onboarding_complete', 'true');
@@ -74,7 +108,9 @@ const App: React.FC = () => {
       case 'auth':
         return <AuthScreen onLoginSuccess={handleLoginSuccess} />;
       case 'onboarding':
-        return <OnboardingScreen onComplete={handleOnboardingComplete} />;
+  const userId = Number(localStorage.getItem('easup_user_id'));
+  return <OnboardingScreen onComplete={handleOnboardingComplete} loggedInUserId={userId} />;
+
       case 'ready':
         return (
           <>

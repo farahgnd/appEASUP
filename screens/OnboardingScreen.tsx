@@ -5,9 +5,10 @@ import type { Condition } from '../types';
 
 interface OnboardingScreenProps {
   onComplete: () => void;
+  loggedInUserId: number; // ID de l'utilisateur connecté
 }
 
-const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
+const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, loggedInUserId }) => {
   const { setCondition } = useHealthData();
   const [step, setStep] = useState(1);
   const [goal, setGoal] = useState<string | null>(null);
@@ -17,6 +18,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
     height: '',
     activityLevel: 'moderate'
   });
+  const [selectedConditions, setSelectedConditions] = useState<Condition[]>([]);
   const [calibrationText, setCalibrationText] = useState("Initializing...");
   const [fade, setFade] = useState('animate-fade-in');
 
@@ -26,11 +28,58 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
     { id: 'wellness', name: 'Wellness Balance', icon: <BrainCircuit size={32} /> },
   ];
   
-   const conditions = [
+  const conditions = [
     { id: 'diabetes', name: 'Diabetes', description: 'Personalized meal and activity tracking.' },
     { id: 'hypertension', name: 'Hypertension', description: 'Guidance on diet and stress management.' },
     { id: 'none', name: 'None of these', description: 'General health and fitness tracking.' },
   ];
+
+ //----------------debut save profile
+ const saveProfile = async () => {
+  try {
+    const profileData = {
+      userId: loggedInUserId,
+      age: bioData.age,
+      weight: bioData.weight,
+      height: bioData.height,
+      activityLevel: bioData.activityLevel,
+      goal: goal,
+      conditions: selectedConditions
+    };
+
+    console.log("PROFILE DATA SENT:", profileData);
+
+    const response = await fetch(
+      "http://localhost/appEASUP/API/save_profile.php",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(profileData)
+      }
+    );
+
+    // ⚠️ LIRE D’ABORD EN TEXTE
+    const rawText = await response.text();
+    console.log("RAW RESPONSE FROM PHP:", rawText);
+
+    // ⚠️ PUIS convertir en JSON
+    const result = JSON.parse(rawText);
+
+    if (!result.success) {
+      console.error("Error saving profile:", result.message);
+    } else {
+      console.log("Profile saved successfully!");
+    }
+
+  } catch (error) {
+    console.error("Error saving profile:", error);
+  }
+};
+
+
+  // ------------------ fin saveProfile ------------------
 
   const handleBioDataChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -46,30 +95,35 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
   };
   
   const handleConditionSelect = (selectedCondition: Condition) => {
+    setSelectedConditions(prev => [...prev, selectedCondition]);
     setCondition(selectedCondition);
     nextStep();
   };
 
-  useEffect(() => {
-    if (step === 5) {
-      const texts = [
-        "Calibrating Bio-Metrics...",
-        "Syncing Neural Pathways...",
-        "Generating Personal Aura...",
-        "EASUP AI is Ready.",
-      ];
-      let i = 0;
-      const interval = setInterval(() => {
-        setCalibrationText(texts[i]);
-        i++;
-        if (i === texts.length) {
-          clearInterval(interval);
-          setTimeout(onComplete, 1000);
-        }
-      }, 1500);
-      return () => clearInterval(interval);
-    }
-  }, [step, onComplete]);
+  // ------------------ useEffect de la dernière étape ------------------
+useEffect(() => {
+  if (step === 5) {
+    const texts = [
+      "Calibrating Bio-Metrics...",
+      "Syncing Neural Pathways...",
+      "Generating Personal Aura...",
+      "EASUP AI is Ready.",
+    ];
+    let i = 0;
+    const interval = setInterval(() => {
+      setCalibrationText(texts[i]);
+      i++;
+      if (i === texts.length) {
+        clearInterval(interval);
+        saveProfile().then(() => {
+          onComplete(); // passer à la page suivante après sauvegarde
+        });
+      }
+    }, 1500);
+    return () => clearInterval(interval);
+  }
+}, [step, onComplete]);
+
 
   const renderStep = () => {
     switch (step) {
