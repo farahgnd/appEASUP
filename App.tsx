@@ -73,8 +73,26 @@ const App: React.FC = () => {
         return <div className="h-full w-full bg-black flex items-center justify-center"></div>;
       case 'auth':
         return <AuthScreen onLoginSuccess={handleLoginSuccess} />;
-      case 'onboarding':
-        return <OnboardingScreen onComplete={handleOnboardingComplete} />;
+case 'onboarding': {
+  const storedUserId = localStorage.getItem('easup_user_id');
+  const loggedInUserId = storedUserId ? parseInt(storedUserId, 10) : null;
+
+  if (!loggedInUserId) {
+    console.error("❌ User ID missing, forcing logout");
+    handleLogout();
+    return null;
+  }
+
+  return (
+    <OnboardingScreen
+      loggedInUserId={loggedInUserId}
+      onComplete={handleOnboardingComplete}
+    />
+  );
+}
+
+
+
       case 'ready':
         return (
           <>
