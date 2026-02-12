@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, MessageSquare, Apple, User, Users } from 'lucide-react';
+import { Home, MessageSquare, Apple, User, Users, BarChart3 } from 'lucide-react';
 import type { Screen } from '../App';
 
 interface BottomNavProps {
@@ -35,9 +35,9 @@ const NavItem: React.FC<{
 const BottomNav: React.FC<BottomNavProps> = ({ activeScreen, setActiveScreen }) => {
   const navItems: { label: Screen; icon: React.ReactNode }[] = [
     { label: 'Home', icon: <Home size={26} /> },
+    { label: 'Dashboard', icon: <BarChart3 size={26} /> },
     { label: 'Coach', icon: <MessageSquare size={26} /> },
     { label: 'Nutrition', icon: <Apple size={26} /> },
-    { label: 'Community', icon: <Users size={26} /> },
     { label: 'Profile', icon: <User size={26} /> },
   ];
 

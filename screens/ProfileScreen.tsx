@@ -38,6 +38,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout }) => {
     const [joinCode, setJoinCode] = useState('');
     const [joinError, setJoinError] = useState('');
     const [showConditionModal, setShowConditionModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [username, setUsername] = useState(() => localStorage.getItem('easup_username') || 'User_01');
+    const [photoUrl, setPhotoUrl] = useState(() => localStorage.getItem('easup_photo_url') || `https://picsum.photos/seed/user/200`);
+    const [editUsername, setEditUsername] = useState(username);
+    const [editPhotoUrl, setEditPhotoUrl] = useState(photoUrl);
 
     const handleJoinGroup = () => {
         if (joinCode.toUpperCase() === 'ALPHA-X7B9') {
@@ -61,6 +66,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout }) => {
         none: 'None Reported'
     };
 
+    const handleSaveProfile = () => {
+        localStorage.setItem('easup_username', editUsername);
+        localStorage.setItem('easup_photo_url', editPhotoUrl);
+        setUsername(editUsername);
+        setPhotoUrl(editPhotoUrl);
+        setShowEditModal(false);
+    };
+
     return (
          <div className="relative z-10">
             <header className="p-4 bg-gray-900/50 backdrop-blur-lg border-b border-green-400/20 sticky top-0 z-20">
@@ -69,12 +82,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout }) => {
             <div className="p-4 space-y-8">
                 <div className="flex flex-col items-center">
                     <div className="w-24 h-24 rounded-full border-2 border-green-400 p-1 mb-4">
-                        <img src={`https://picsum.photos/seed/user/200`} alt="User avatar" className="w-full h-full rounded-full object-cover"/>
+                        <img src={photoUrl} alt="User avatar" className="w-full h-full rounded-full object-cover"/>
                     </div>
-                    <h2 className="text-2xl font-bold text-white">User_01</h2>
+                    <h2 className="text-2xl font-bold text-white">{username}</h2>
                     <p className="text-sm text-green-400">Level 7 EASUP Athlete</p>
-                    <button className="mt-4 flex items-center gap-2 text-sm bg-gray-700/50 text-green-300 px-4 py-2 rounded-full hover:bg-gray-700 transition">
-                        <Brush size={16} /> Customize Avatar
+                    <button onClick={() => { setEditUsername(username); setEditPhotoUrl(photoUrl); setShowEditModal(true); }} className="mt-4 flex items-center gap-2 text-sm bg-gray-700/50 text-green-300 px-4 py-2 rounded-full hover:bg-gray-700 transition">
+                        <Brush size={16} /> Edit Profile
                     </button>
                 </div>
 
@@ -144,6 +157,64 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout }) => {
                         </div>
                         {joinError && <p className="text-red-400 text-xs text-center">{joinError}</p>}
                         <button onClick={handleJoinGroup} className="w-full bg-green-500 text-white font-bold py-3 rounded-full hover:bg-green-400 transition transform active:scale-95">Enter Squad</button>
+                    </div>
+                </Modal>
+            )}
+
+            {showConditionModal && (
+                <Modal title="Update Health Profile" onClose={() => setShowConditionModal(false)}>
+                    <div className="space-y-3">
+                        {(['none', 'diabetes', 'hypertension'] as Condition[]).map(cond => (
+                            <button key={cond} onClick={() => handleConditionUpdate(cond)} className={`w-full p-3 rounded-lg text-left transition ${condition === cond ? 'bg-green-500/30 border-2 border-green-500 text-white' : 'bg-gray-800 border border-gray-700 text-gray-300 hover:border-green-500'}`}>
+                                {conditionDisplay[cond]}
+                            </button>
+                        ))}
+                    </div>
+                </Modal>
+            )}
+
+            {showEditModal && (
+                <Modal title="Edit Profile" onClose={() => setShowEditModal(false)}>
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm text-gray-300 mb-2">Username</label>
+                            <input 
+                                type="text" 
+                                value={editUsername}
+                                onChange={(e) => setEditUsername(e.target.value)}
+                                placeholder="Enter your username"
+                                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:border-green-500 outline-none transition"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm text-gray-300 mb-2">Photo URL</label>
+                            <input 
+                                type="text" 
+                                value={editPhotoUrl}
+                                onChange={(e) => setEditPhotoUrl(e.target.value)}
+                                placeholder="https://example.com/photo.jpg"
+                                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:border-green-500 outline-none transition"
+                            />
+                            {editPhotoUrl && (
+                                <div className="mt-3 text-center">
+                                    <img src={editPhotoUrl} alt="Preview" className="w-20 h-20 rounded-full object-cover mx-auto border border-green-400"/>
+                                </div>
+                            )}
+                        </div>
+                        <div className="flex gap-2 pt-2">
+                            <button 
+                                onClick={() => setShowEditModal(false)}
+                                className="flex-1 bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                onClick={handleSaveProfile}
+                                className="flex-1 bg-green-500 text-white font-bold px-4 py-2 rounded-lg hover:bg-green-400 transition"
+                            >
+                                Save
+                            </button>
+                        </div>
                     </div>
                 </Modal>
             )}

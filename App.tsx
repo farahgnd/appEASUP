@@ -5,12 +5,13 @@ import CoachScreen from './screens/CoachScreen';
 import NutritionScreen from './screens/NutritionScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import CommunityScreen from './screens/CommunityScreen';
+import DashboardScreen from './screens/DashboardScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
 import AuthScreen from './screens/AuthScreen';
 import BottomNav from './components/BottomNav';
 import { HealthDataProvider } from './context/HealthDataContext';
 
-export type Screen = 'Home' | 'Coach' | 'Nutrition' | 'Profile' | 'Community';
+export type Screen = 'Home' | 'Coach' | 'Nutrition' | 'Profile' | 'Community' | 'Dashboard';
 
 type AppState = 'loading' | 'auth' | 'onboarding' | 'ready';
 
@@ -54,21 +55,8 @@ const App: React.FC = () => {
   localStorage.setItem('easup_authenticated', 'true');
   localStorage.setItem('easup_user_id', userId.toString());
 
-  try {
-    const res = await fetch(
-      `http://localhost/appEASUP/API/check_profile.php?userId=${userId}`
-    );
-    const data = await res.json();
-
-    if (data.hasProfile) {
-      setAppState('ready');       // ✅ PAS d’onboarding
-    } else {
-      setAppState('onboarding');  // ✅ onboarding UNE FOIS
-    }
-  } catch (e) {
-    console.error(e);
-    setAppState('auth');
-  }
+  // Bypass API call - go directly to onboarding
+  setAppState('onboarding');
 };
 
 
@@ -88,6 +76,8 @@ const App: React.FC = () => {
     switch (activeScreen) {
       case 'Home':
         return <HomeScreen />;
+      case 'Dashboard':
+        return <DashboardScreen />;
       case 'Coach':
         return <CoachScreen />;
       case 'Nutrition':

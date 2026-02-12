@@ -107,8 +107,12 @@ const CommunityScreen: React.FC = () => {
     
     const handleCreateGroup = () => {
         if (newGroupName.trim() === '') return;
+        
+        const username = localStorage.getItem('easup_username') || 'User_01';
+        const photoUrl = localStorage.getItem('easup_photo_url') || 'https://picsum.photos/seed/user/200';
+        
         const newUserAsMember: GroupMember = {
-             id: 'u1', name: 'User_01', avatarUrl: 'https://picsum.photos/seed/user/200', easupScore: 78, level: 7, isCurrentUser: true
+             id: 'u1', name: username, avatarUrl: photoUrl, easupScore: 78, level: 7, isCurrentUser: true
         };
         const newGroup: Group = {
             id: `g${Date.now()}`,

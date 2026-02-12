@@ -24,32 +24,30 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
   setError('');
   setIsLoading(true);
 
-  const endpoint = isLoginView 
-    ? "http://localhost/appEASUP/API/login.php"   // chemin vers ton login.php
-    : "http://localhost/appEASUP/API/signup.php"; // chemin vers ton signup.php
-
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password })
-  });
-
-  const result = await response.json();
+  // Simulated auth (bypass PHP for now)
+  await new Promise(res => setTimeout(res, 1000));
   setIsLoading(false);
 
-  if (!result.success) {
-  setError(result.message);
-  return;
-}
+  // Mock users for testing
+  const mockUsers: { [key: string]: { password: string; id: number } } = {
+    'test@test.com': { password: 'test123', id: 1 },
+    'user@easup.com': { password: 'password', id: 2 }
+  };
 
-// ✅ UNE SEULE FOIS
-onLoginSuccess(result.userId);
+  console.log('Tentative de connexion avec:', { email, password });
+  const user = mockUsers[email];
+  console.log('Utilisateur trouvé:', user);
 
-  
+  if (!user || user.password !== password) {
+    console.log('Authentification échouée');
+    setError(isLoginView ? 'Invalid email or password.' : 'Account created! Please sign in.');
+    return;
+  }
 
- 
-};
-
+  console.log('Authentification réussie, userId:', user.id);
+  // ✅ UNE SEULE FOIS
+  onLoginSuccess(user.id);
+ };
 
   return (
   <div className="h-full w-full flex flex-col items-center justify-center p-8 relative z-10 animate-fade-in">

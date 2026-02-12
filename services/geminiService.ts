@@ -2,7 +2,7 @@
 import { GoogleGenAI } from "@google/genai";
 import type { HealthData, Condition } from '../types';
 
-const API_KEY = process.env.API_KEY;
+const API_KEY = import.meta.env.VITE_API_KEY;
 
 if (!API_KEY) {
   console.warn("Gemini API key not found. Using mock responses.");
