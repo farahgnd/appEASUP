@@ -34,50 +34,37 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete, loggedI
     { id: 'none', name: 'None of these', description: 'General health and fitness tracking.' },
   ];
 
- //----------------debut save profile
- const saveProfile = async () => {
+  // ------------------ saveProfile ------------------
+  const saveProfile = async () => {
   try {
     const profileData = {
-      userId: loggedInUserId,
+      userId: loggedInUserId, // récupéré après login
       age: bioData.age,
       weight: bioData.weight,
       height: bioData.height,
       activityLevel: bioData.activityLevel,
       goal: goal,
-      conditions: selectedConditions
+      conditions: selectedConditions // tableau des conditions sélectionnées
     };
+console.log("Profile data before sending:", profileData);
 
-    console.log("PROFILE DATA SENT:", profileData);
+    const response = await fetch("/API/save_profile.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(profileData)
+    });
 
-    const response = await fetch(
-      "http://localhost/appEASUP/API/save_profile.php",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(profileData)
-      }
-    );
-
-    // ⚠️ LIRE D’ABORD EN TEXTE
-    const rawText = await response.text();
-    console.log("RAW RESPONSE FROM PHP:", rawText);
-
-    // ⚠️ PUIS convertir en JSON
-    const result = JSON.parse(rawText);
+    const result = await response.json();
 
     if (!result.success) {
       console.error("Error saving profile:", result.message);
     } else {
       console.log("Profile saved successfully!");
     }
-
   } catch (error) {
     console.error("Error saving profile:", error);
   }
 };
-
 
   // ------------------ fin saveProfile ------------------
 

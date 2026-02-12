@@ -4,13 +4,7 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: Content-Type");
 
 // Connexion à la base EASUP
-try {
-    $pdo = new PDO("mysql:host=localhost;dbname=easup;charset=utf8", "root", "");
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    echo json_encode(["success" => false, "message" => "DB connection failed: " . $e->getMessage()]);
-    exit;
-}
+$pdo = new PDO("mysql:host=localhost;dbname=easup;charset=utf8", "root", "");
 
 // Lire les données JSON envoyées par React
 $data = json_decode(file_get_contents("php://input"));
@@ -38,5 +32,7 @@ if (!password_verify($password, $user['password_hash'])) {
     exit;
 }
 
-// Succès : renvoyer l'ID utilisateur au frontend
+// Succès
 echo json_encode(["success" => true, "userId" => $user['id']]);
+localStorage.setItem('easup_user_id', result.userId.toString());
+

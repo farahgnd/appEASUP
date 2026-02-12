@@ -31,9 +31,4 @@ $hash = password_hash($password, PASSWORD_BCRYPT);
 $stmt = $pdo->prepare("INSERT INTO users (email, password_hash) VALUES (?, ?)");
 $stmt->execute([$email, $hash]);
 
-$userId = $pdo->lastInsertId(); 
-
-echo json_encode([
-    "success" => true,
-    "userId" => $userId
-]);
+echo json_encode(["success" => true, "message" => "User created successfully."]);
