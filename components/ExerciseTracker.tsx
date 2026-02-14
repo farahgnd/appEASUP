@@ -10,6 +10,39 @@ interface ExerciseTrackerProps {
 const ExerciseTracker: React.FC<ExerciseTrackerProps> = ({ userId, onExerciseAdded }) => {
   const [showForm, setShowForm] = useState(false);
   const [exercises, setExercises] = useState<Exercise[]>(HealthStorageService.getWeekExercises(userId));
+  const guidedExercises = [
+    {
+      name: "Planche gauche",
+      image: "/public/exercises/planchegauche.jpg",
+      duration: 60,
+      type: "musculation",
+      muscleGroups: ["Abdominaux"]
+    },
+    {
+      name: "Squats",
+      image: "/public/exercises/squat.jpg",
+      duration: 60,
+      type: "musculation",
+      muscleGroups: ["Jambes", "Quadriceps"]
+    },
+    {
+      name: "Pompes",
+      image: "/public/exercises/popmpes.jpg",
+      duration: 60,
+      type: "musculation",
+      muscleGroups: ["Bras", "Épaules"]
+    },
+    {
+      name: "Jumping Jacks",
+      image: "/public/exercises/jumpingjacks.jpg",
+      duration: 60,
+      type: "musculation",
+      muscleGroups: ["Corps complet"]
+    }
+  ];
+  const [liveMode, setLiveMode] = useState(false);
+  const [currentLive, setCurrentLive] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(60);
 
   const [formData, setFormData] = useState({
     type: 'musculation' as const,
@@ -22,7 +55,7 @@ const ExerciseTracker: React.FC<ExerciseTrackerProps> = ({ userId, onExerciseAdd
   });
 
   const muscleOptions = [
-    'Poitrine', 'Dos', 'Épaules', 'Bras', 'Avant-bras',
+    'corps complet', 'Dos', 'Épaules', 'Bras', 'Avant-bras',
     'Abdominaux', 'Jambes', 'Quadriceps', 'Ischio-jambiers', 'Mollets'
   ];
 
@@ -34,6 +67,39 @@ const ExerciseTracker: React.FC<ExerciseTrackerProps> = ({ userId, onExerciseAdd
         : [...prev.muscleGroups, muscle]
     }));
   };
+
+  React.useEffect(() => {
+    if (!liveMode) return;
+
+    const interval = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev === 1) {
+          const ex = guidedExercises[currentLive];
+          if (ex) {
+            HealthStorageService.addExercise(userId, {
+              date: new Date().toISOString(),
+              type: ex.type as any,
+              muscleGroups: ex.muscleGroups,
+              duration: 1,
+              intensity: 5
+            });
+          }
+
+          if (currentLive < guidedExercises.length - 1) {
+            setCurrentLive(c => c + 1);
+            return 60;
+          } else {
+            setLiveMode(false);
+            setCurrentLive(0);
+            return 60;
+          }
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [liveMode, currentLive]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,6 +151,52 @@ const ExerciseTracker: React.FC<ExerciseTrackerProps> = ({ userId, onExerciseAdd
         >
           {showForm ? <X size={20} /> : <Plus size={20} />}
         </button>
+      </div>
+
+      {/* MODE EXERCICE GUIDÉ */}
+      <div className="bg-gray-800/40 p-4 rounded-lg border border-green-500/20">
+        <button
+          onClick={() => {
+            if (!liveMode) {
+              setCurrentLive(0);
+              setTimeLeft(60);
+            }
+            setLiveMode(!liveMode);
+          }}
+          className="w-full bg-green-500 hover:bg-green-400 text-white font-bold py-2 rounded mb-4"
+        >
+          {liveMode ? "Arrêter séance guidée" : "Démarrer séance guidée"}
+        </button>
+
+        {liveMode && guidedExercises[currentLive] && (
+          <div className="flex flex-col items-center gap-4">
+            <h4 className="text-green-300 font-bold text-lg">
+              {guidedExercises[currentLive].name}
+            </h4>
+
+            <img
+              src={guidedExercises[currentLive].image}
+              className="w-48"
+              alt=""
+            />
+
+            <div className="w-40 h-40 rounded-full border-8 border-gray-600 relative">
+              <div
+                className="absolute inset-0 rounded-full border-8 border-green-400"
+                style={{
+                  clipPath: `inset(${100 - (timeLeft / 60) * 100}% 0 0 0)`
+                }}
+              />
+              <span className="absolute inset-0 flex items-center justify-center text-3xl font-bold">
+                {timeLeft}s
+              </span>
+            </div>
+
+            <p className="text-sm text-gray-400">
+              {currentLive + 1} / {guidedExercises.length}
+            </p>
+          </div>
+        )}
       </div>
 
       {showForm && (
@@ -207,8 +319,8 @@ const ExerciseTracker: React.FC<ExerciseTrackerProps> = ({ userId, onExerciseAdd
         {exercises.length === 0 ? (
           <p className="text-gray-400 text-sm italic">Aucun exercice enregistré cette semaine</p>
         ) : (
-          exercises.map(ex => (
-            <div key={ex.id} className="bg-gray-800/30 p-3 rounded border border-gray-700 flex items-start justify-between">
+          exercises.map((ex, index) => (
+            <div key={ex.id ?? `exercise-${index}`} className="bg-gray-800/30 p-3 rounded border border-gray-700 flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <span className="text-green-400 font-bold">{ex.type}</span>

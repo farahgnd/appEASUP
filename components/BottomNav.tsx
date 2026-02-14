@@ -1,5 +1,12 @@
 import React from 'react';
-import { Home, MessageSquare, Apple, User, Users, BarChart3 } from 'lucide-react';
+import {
+  Home,
+  MessageSquare,
+  MessageCircle,
+  Apple,
+  User,
+  BarChart3
+} from 'lucide-react';
 import type { Screen } from '../App';
 
 interface BottomNavProps {
@@ -21,22 +28,36 @@ const NavItem: React.FC<{
         isActive ? 'text-green-400' : 'text-gray-400 hover:text-white'
       }`}
     >
-      <div className={`relative transition-all duration-300 ${isActive ? 'scale-110 -translate-y-1' : ''}`}>
+      <div
+        className={`relative transition-all duration-300 ${
+          isActive ? 'scale-110 -translate-y-1' : ''
+        }`}
+      >
         {icon}
         {isActive && (
           <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-8 h-1 bg-green-400 rounded-full shadow-[0_0_10px_0_rgba(16,185,129,0.7)]"></div>
         )}
       </div>
-      <span className={`text-xs mt-1 transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-0'}`}>{label}</span>
+      <span
+        className={`text-xs mt-1 transition-opacity duration-300 ${
+          isActive ? 'opacity-100' : 'opacity-0'
+        }`}
+      >
+        {label}
+      </span>
     </button>
   );
 };
 
-const BottomNav: React.FC<BottomNavProps> = ({ activeScreen, setActiveScreen }) => {
+const BottomNav: React.FC<BottomNavProps> = ({
+  activeScreen,
+  setActiveScreen
+}) => {
   const navItems: { label: Screen; icon: React.ReactNode }[] = [
     { label: 'Home', icon: <Home size={26} /> },
     { label: 'Dashboard', icon: <BarChart3 size={26} /> },
-    { label: 'Coach', icon: <MessageSquare size={26} /> },
+    { label: 'Coach', icon: <MessageSquare size={26} /> }, // IA
+    { label: 'Chat', icon: <MessageCircle size={26} /> }, 
     { label: 'Nutrition', icon: <Apple size={26} /> },
     { label: 'Profile', icon: <User size={26} /> },
   ];

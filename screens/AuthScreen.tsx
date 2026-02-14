@@ -3,9 +3,8 @@ import React, { useState } from 'react';
 import { Mail, Lock, Loader, Bot } from 'lucide-react';
 
 interface AuthScreenProps {
-  onLoginSuccess: (userId: number) => void;
+  onLoginSuccess: () => void;
 }
-
 
 const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
   const [isLoginView, setIsLoginView] = useState(true);
@@ -24,30 +23,35 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
   setError('');
   setIsLoading(true);
 
-  // Simulated auth (bypass PHP for now)
-  await new Promise(res => setTimeout(res, 1000));
+  const endpoint = isLoginView 
+    ? "http://192.168.1.15/appEASUP/api/login.php"   // chemin vers ton login.php
+    : "http://192.168.1.15/appEASUP/api/signup.php"; // chemin vers ton signup.php
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password })
+  });
+
+  const result = await response.json();
   setIsLoading(false);
 
-  // Mock users for testing
-  const mockUsers: { [key: string]: { password: string; id: number } } = {
-    'test@test.com': { password: 'test123', id: 1 },
-    'user@easup.com': { password: 'password', id: 2 }
-  };
-
-  console.log('Tentative de connexion avec:', { email, password });
-  const user = mockUsers[email];
-  console.log('Utilisateur trouvé:', user);
-
-  if (!user || user.password !== password) {
-    console.log('Authentification échouée');
-    setError(isLoginView ? 'Invalid email or password.' : 'Account created! Please sign in.');
+  if (!result.success) {
+    setError(result.message);
     return;
   }
 
-  console.log('Authentification réussie, userId:', user.id);
-  // ✅ UNE SEULE FOIS
-  onLoginSuccess(user.id);
- };
+  // Connexion / création réussie
+  // Connexion réussie
+console.log("✅ Logged user id:", result.userId);
+
+localStorage.setItem('easup_authenticated', 'true');
+localStorage.setItem('easup_user_id', result.userId.toString());
+
+onLoginSuccess();
+
+};
+
 
   return (
   <div className="h-full w-full flex flex-col items-center justify-center p-8 relative z-10 animate-fade-in">

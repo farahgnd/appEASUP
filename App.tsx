@@ -8,16 +8,29 @@ import CommunityScreen from './screens/CommunityScreen';
 import DashboardScreen from './screens/DashboardScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
 import AuthScreen from './screens/AuthScreen';
+import ChatScreen from './screens/chatScreen';
+
+
+
+
 import BottomNav from './components/BottomNav';
 import { HealthDataProvider } from './context/HealthDataContext';
 
-export type Screen = 'Home' | 'Coach' | 'Nutrition' | 'Profile' | 'Community' | 'Dashboard';
+export type Screen =
+  | 'Home'
+  | 'Dashboard'
+  | 'Coach'
+  | 'Chat'
+  | 'Nutrition'
+  | 'Profile';
+
 
 type AppState = 'loading' | 'auth' | 'onboarding' | 'ready';
 
 const App: React.FC = () => {
   const [activeScreen, setActiveScreen] = useState<Screen>('Home');
   const [appState, setAppState] = useState<AppState>('loading');
+  
 
   useEffect(() => {
   const initApp = async () => {
@@ -32,7 +45,7 @@ const App: React.FC = () => {
 
     try {
       const res = await fetch(
-        `http://localhost/appEASUP/API/check_profile.php?userId=${userId}`
+        `http://http://192.168.1.15:3000/appEASUP/API/check_profile.php?userId=${userId}`
       );
       const data = await res.json();
 
@@ -53,7 +66,7 @@ const App: React.FC = () => {
 
  const handleLoginSuccess = async (userId: number) => {
   localStorage.setItem('easup_authenticated', 'true');
-  localStorage.setItem('easup_user_id', userId.toString());
+  
 
   // Bypass API call - go directly to onboarding
   setAppState('onboarding');
@@ -86,6 +99,10 @@ const App: React.FC = () => {
         return <ProfileScreen onLogout={handleLogout} />;
       case 'Community':
         return <CommunityScreen />;
+        case 'Chat':
+  const userEmail = localStorage.getItem('easup_user_email') || 'user@example.com';
+  return <ChatScreen userEmail={userEmail} />;
+
       default:
         return <HomeScreen />;
     }
@@ -120,7 +137,7 @@ const App: React.FC = () => {
       <div className="h-screen w-screen bg-black overflow-hidden flex flex-col items-center justify-center">
         <div className="relative w-full max-w-md h-full md:h-[90vh] md:max-h-[800px] bg-gray-900 text-white overflow-hidden shadow-2xl shadow-green-500/10 md:rounded-3xl border border-gray-700/50 flex flex-col">
           <div 
-            className="absolute top-0 left-0 w-full h-full bg-grid-pattern opacity-10"
+            className="absolute top-0 left-0 w-full h-full bg-grid-pattern opacity-10 pointer-events-none"
             // FIX: Cast style object to React.CSSProperties to allow CSS custom properties, resolving a TypeScript error.
             style={{
               '--grid-color': 'rgba(16, 185, 129, 0.5)',
